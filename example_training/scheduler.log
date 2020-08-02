@@ -1,0 +1,13 @@
+Sat, 01 Aug 2020 16:10:37 gpu_task_scheduler.py[line:53] INFO gpu0 receives task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:12:15 gpu_task_scheduler.py[line:93] INFO gpu0 finishes task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:12:15 gpu_task_scheduler.py[line:53] INFO gpu0 receives task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-1,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:13:35 gpu_task_scheduler.py[line:93] INFO gpu0 finishes task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-1,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:13:35 gpu_task_scheduler.py[line:53] INFO gpu0 receives task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-2,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:15:01 gpu_task_scheduler.py[line:93] INFO gpu0 finishes task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-2,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:15:01 gpu_task_scheduler.py[line:46] INFO gpu0 finished
+Sat, 01 Aug 2020 16:15:21 gpu_task_scheduler.py[line:53] INFO gpu0 receives task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:15:21 gpu_task_scheduler.py[line:56] INFO gpu0 skips task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 16:15:21 gpu_task_scheduler.py[line:46] INFO gpu0 finished
+Sat, 01 Aug 2020 19:13:33 gpu_task_scheduler.py[line:53] INFO gpu0 receives task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 19:16:27 gpu_task_scheduler.py[line:93] INFO gpu0 finishes task aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,
+Sat, 01 Aug 2020 19:16:27 gpu_task_scheduler.py[line:46] INFO gpu0 finished

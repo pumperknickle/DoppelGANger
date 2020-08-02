@@ -13,12 +13,12 @@ import tensorflow as tf
 
 
 if __name__ == "__main__":
-    sample_len = 10
+    sample_len = 1
 
     (data_feature, data_attribute,
      data_gen_flag,
      data_feature_outputs, data_attribute_outputs) = \
-        load_data("../data/web")
+        load_data("../data/iot")
     print(data_feature.shape)
     print(data_attribute.shape)
     print(data_gen_flag.shape)
