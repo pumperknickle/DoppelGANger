@@ -1,16 +1,18 @@
 from gan.output import Output, OutputType, Normalization
-from pcaputilities import convertToFeatures, convert_to_durations
+from pcaputilities import convertToFeatures, sequences_sample, extract_dictionaries_from_activities, convert_to_durations, signatureExtractionAll, all_greedy_activity_conversion
 import sys
 import glob
 import numpy as np
 import pickle
+import random
+import csv
 
 
-def normalize_packet_sizes(sequence):
+def normalize_packet_sizes(sequences):
     normalized_packets = []
     num_seqs = []
     max_packet_size = 0
-    for sequence in sequence:
+    for sequence in sequences:
         num_seq = [int(x) for x in sequence]
         max_packet_size = max(max([abs(x) for x in num_seq]), max_packet_size)
         num_seqs.append(num_seq)
@@ -71,6 +73,142 @@ normalized_p, V = normalize_packet_sizes(packet_sizes)
 normalized_d, max_duration = normalize_durations(durations)
 max_len = find_max_len(packet_sizes)
 
+all_signatures = signatureExtractionAll(normalized_p, 1, 7, 5, 4)
+results = all_greedy_activity_conversion(normalized_p, all_signatures)
+signatureToTokens, tokensToSignatures = extract_dictionaries_from_activities(results)
+
+with open("sigToToken.pkl", mode='wb') as sigFile:
+    pickle.dump(signatureToTokens, sigFile)
+with open("tokenToSig.pkl", mode='wb') as tokenFile:
+    pickle.dump(tokensToSignatures, tokenFile)
+
+print("signature to tokens")
+print(signatureToTokens)
+print("tokens to signature")
+print(tokensToSignatures)
+
+
+
+sequences = []
+for sequence in results:
+    sigs = []
+    for token in sequence:
+        sigs.append(signatureToTokens[token])
+    sequences.append(sigs)
+
+for i in range(len(results)):
+
+
+print("tokens")
+print(sequences)
+
+seq_length = 20
+minDicts = dict()
+maxDicts = dict()
+
+minDicts[0] = 10000000
+maxDicts[0] = 0
+
+def divide_chunks(l, n):
+    # looping till length l
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+all_chunks = []
+all_altered_chunks = []
+
+for i in range(len(normalized_p)):
+  filename = 'real_data4.csv'
+  with open(filename, mode='a') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=' ')
+    chunks = divide_chunks(normalized_p[i], seq_length)
+    for chunk in chunks:
+      all_chunks.append(chunk)
+      if len(chunk) == seq_length:
+        csv_writer.writerow(chunk)
+
+
+for i in range(len(sequences)):
+  filename = 'real_data3.csv'
+  with open(filename, mode='a') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=' ')
+    chunks = divide_chunks(sequences[i], seq_length)
+    for chunk in chunks:
+      all_chunks.append(chunk)
+      if len(chunk) == seq_length:
+        csv_writer.writerow(chunk)
+
+
+def extractSequences(fn):
+    seqs = []
+    with open(fn, newline='\n') as csvf:
+        csv_reader = csv.reader(csvf, delimiter=' ')
+        for row in csv_reader:
+            seqs.append(row)
+    return seqs
+#
+# mapping = dict()
+# real_all_seq = extractSequences("real_data.csv")
+# for i in range(len(real_all_seq)):
+#     print("real")
+#     print(len(real_all_seq[i]))
+#     print(real_all_seq[i])
+#     print("altered")
+#     print(len(all_altered_chunks[i]))
+#     print(all_altered_chunks[i])
+#     zipped = dict(zip(real_all_seq[i], all_altered_chunks[i]))
+#     mapping.update(zipped)
+#
+# real_sequences = []
+# for real_seq in all_chunks:
+#     real_sequence = []
+#     for idx in real_seq:
+#         real_sequence.append(tokensToSignatures[idx])
+#     real_sequences.append(real_sequence)
+#
+# final_reals = sequences_sample(real_sequences)
+#
+# for i in range(len(final_reals)):
+#   chunks = divide_chunks(final_reals[i], seq_length)
+#   for chunk in chunks:
+#     if min(chunk) < minDicts[0]:
+#       minDicts[0] = min(chunk)
+#     if max(chunk) > maxDicts[0]:
+#       maxDicts[0] = max(chunk)
+#
+# for i in range(len(final_reals)):
+#   filename = 'real_datac.txt'
+#   with open(filename, mode='a') as csvfile:
+#     csv_writer = csv.writer(csvfile, delimiter=' ')
+#     alteredChunk = list(map(lambda x: x - minDicts[0], final_reals[i]))
+#     csv_writer.writerow(alteredChunk)
+#
+# fake_seqs = extractSequences("fake_data.txt")
+# fake_sequences = []
+# for fake_seq in fake_seqs:
+#     fake_sequence = []
+#     for idx in fake_seq:
+#         fake_sequence.append(tokensToSignatures[mapping[idx]])
+#     fake_sequences.append(fake_sequence)
+#
+# final_fakes = sequences_sample(fake_sequences)
+#
+# for i in range(len(final_fakes)):
+#   chunks = divide_chunks(final_fakes[i], seq_length)
+#   for chunk in chunks:
+#     if min(chunk) < minDicts[0]:
+#       minDicts[0] = min(chunk)
+#     if max(chunk) > maxDicts[0]:
+#       maxDicts[0] = max(chunk)
+#
+# for i in range(len(final_fakes)):
+#   filename = 'fake_datac.txt'
+#   with open(filename, mode='a') as csvfile:
+#     csv_writer = csv.writer(csvfile, delimiter=' ')
+#     alteredChunk = list(map(lambda x: x - minDicts[0], final_fakes[i]))
+#     csv_writer.writerow(alteredChunk)
+
 data_feature_output = [
     Output(type_=OutputType.DISCRETE, dim=V, normalization=None, is_gen_flag=False),
     Output(type_=OutputType.CONTINUOUS, dim=1, normalization=Normalization.ZERO_ONE, is_gen_flag=False)
@@ -95,17 +233,18 @@ for i in range(len(normalized_p)):
     data_attr = [0] * D
     data_attr[label] = 1.0
     for j in range(max_len):
-        if len(normalized_packet) <= j:
-            data_gen.append(0.0)
-            data_feat.append(np.array((V + 1) * [0.0], dtype="float32"))
-        else:
-            duration = normalized_duration[j]
-            packet = normalized_packet[j]
-            data_gen.append(1.0)
-            d = V * [0.0]
-            d[packet] = 1.0
-            d.append(duration)
-            data_feat.append(np.array(d, dtype="float32"))
+        if random.randrange(50) > 48:
+            if len(normalized_packet) <= j:
+                data_gen.append(0.0)
+                data_feat.append(np.array((V + 1) * [0.0], dtype="float32"))
+            else:
+                duration = normalized_duration[j]
+                packet = normalized_packet[j]
+                data_gen.append(1.0)
+                d = V * [0.0]
+                d[packet] = 1.0
+                d.append(duration)
+                data_feat.append(np.array(d, dtype="float32"))
     data_gen_flag.append(np.array(data_gen, dtype="float32"))
     data_feature.append(np.array(data_feat))
     data_attribute.append(np.array(data_attr, dtype="float32"))
@@ -114,11 +253,11 @@ print(D)
 print(V)
 
 data_feature = np.array(data_feature)
-print(data_feature.shape)
+print(data_feature)
 data_attribute = np.array(data_attribute)
-print(data_attribute.shape)
+print(data_attribute)
 data_gen_flag = np.array(data_gen_flag)
-print(data_gen_flag.shape)
+print(data_gen_flag)
 print("Max Duration")
 print(max_duration)
 

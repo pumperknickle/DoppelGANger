@@ -33,10 +33,36 @@ def extract_all(real_packet_sizes_file):
 def most_common(lst):
     return max(set(lst), key=lst.count)
 
+
 def save_sequence(filename, sequence):
     with open(filename, 'a', newline='\n') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=' ')
         csv_writer.writerow(sequence)
+
+
+def signature_sample(signature):
+    samples = []
+    for constraints in signature:
+        sample = random.randint(constraints[0], constraints[1])
+        samples.append(sample)
+    return samples
+
+
+def sequence_sample(sequence):
+    samples = []
+    for step in sequence:
+        if isinstance(step, int):
+            samples.append(step)
+        else:
+            samples = samples + signature_sample(stringToSignature(step))
+    return samples
+
+
+def sequences_sample(sequences):
+    samples = []
+    for sequence in sequences:
+        samples.append(sequence_sample(sequence))
+    return samples
 
 
 def convert_to_durations(pathToFile):
@@ -60,6 +86,75 @@ def convert_to_durations(pathToFile):
         final_durations.append(tuples[i + 1] - tuples[i])
     final_durations.append(0)
     return final_durations
+
+
+def get_activity_order(all_sequences, all_signatures):
+    signatureDictionary = dict()
+    singleDictionary = dict()
+    for size, signatures in all_signatures.items():
+        for i in range(len(signatures)):
+            signature = signatures[i]
+            count = 0
+            for sequence in all_sequences:
+                ngramSeq = ngrams(size, sequence)
+                idx = 0
+                while idx <= len(ngramSeq) - size:
+                    ngram = ngramSeq[idx]
+                    if matches(ngram, signature):
+                        count += size
+                        idx += size
+                    else:
+                        idx += 1
+            stringSig = signatureToString(signature)
+            if len(signature) == 1:
+                singleDictionary[stringSig] = count
+            else:
+                signatureDictionary[stringSig] = count
+    return sorted(signatureDictionary.items(), key=lambda x: x[1], reverse=True)[0:100] + sorted(singleDictionary.items(), key=lambda x: x[1], reverse=True)[0:100]
+
+
+def all_greedy_activity_conversion(all_sequences, all_signatures):
+    sorted_sigs = get_activity_order(all_sequences, all_signatures)
+    all_converted = []
+    for sequence in all_sequences:
+        all_converted.append(greedy_activity_conversion(sequence, sorted_sigs))
+    return all_converted
+
+
+def extract_dictionaries_from_activities(converted):
+    sigset = set()
+    for c in converted:
+        sigset = sigset.union(c)
+    signatureToToken = {k: v for v, k in enumerate(list(sigset))}
+    tokenToSignature = {v: k for k, v in signatureToToken.items()}
+    return signatureToToken, tokenToSignature
+
+
+def extract_packet_sizes(sequences, packet_sequences):
+    for i in range(len(sequences)):
+
+
+
+def extract_ps_and_durations():
+
+
+def greedy_activity_conversion(sequence, sorted_signatures):
+    if len(sequence) == 0:
+        return []
+    if len(sorted_signatures) == 0:
+        return sequence
+    signature_tuple = sorted_signatures[0]
+    signatureString = signature_tuple[0]
+    signature = stringToSignature(signatureString)
+    idx = 0
+    while idx <= (len(sequence) - len(signature)):
+        if matches(sequence[idx:idx + len(signature)], signature):
+            return greedy_activity_conversion(sequence[0:idx], sorted_signatures[1:len(sorted_signatures)]) + [
+                signatureString] + greedy_activity_conversion(sequence[idx + len(signature):len(sequence)],
+                                                              sorted_signatures)
+        else:
+            idx += 1
+    return greedy_activity_conversion(sequence, sorted_signatures[1:len(sorted_signatures)])
 
 
 def convertToFeatures(pathToFile):
