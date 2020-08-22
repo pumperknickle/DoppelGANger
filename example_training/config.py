@@ -6,12 +6,12 @@ config = {
     },
 
     "global_config": {
-        "batch_size": 100,
+        "batch_size": 10,
         "vis_freq": 200,
-        "vis_num_sample": 5,
+        "vis_num_sample": 701,
         "d_rounds": 1,
         "g_rounds": 1,
-        "num_packing": 1,
+        "num_packing": 2,
         "noise": True,
         "feed_back": False,
         "g_lr": 0.001,

@@ -99,6 +99,16 @@ for sequence in results:
 
 r = chunk_and_convert_ps_and_durations(normalized_p, durations, results, seq_length)
 packet_sizes = r[0]
+
+print(len(packet_sizes))
+
+for i in range(len(packet_sizes)):
+  filename = 'real_packet_sizes.txt'
+  with open(filename, mode='a') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=' ')
+    c_ps = packet_sizes[i]
+    csv_writer.writerow(c_ps)
+
 raw_duration = r[1]
 sig_duration = r[2]
 signatures = r[3]
