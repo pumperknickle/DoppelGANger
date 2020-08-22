@@ -35,7 +35,7 @@ config = {
     "test_config": [
         {
             "dataset": ["iot"],
-            "epoch": [400],
+            "epoch": [80],
             "run": [0],
             "sample_len": [1],
             "extra_checkpoint_freq": [5],

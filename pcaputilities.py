@@ -130,13 +130,67 @@ def extract_dictionaries_from_activities(converted):
     return signatureToToken, tokenToSignature
 
 
-def extract_packet_sizes(sequences, packet_sequences):
-    for i in range(len(sequences)):
+def chunk_and_convert_ps(sequences, sig_sequences, chunk):
+    all_ps = []
+    all_sig = []
+    for i in range(len(sig_sequences)):
+        idx = 0
+        sequence = sequences[i]
+        sig_sequence = sig_sequences[i]
+        for j in range(math.floor(len(sig_sequence)/chunk)):
+            starting_chunk = j * chunk
+            ps = []
+            sigs = []
+            for k in range(chunk):
+                sig = sig_sequence[starting_chunk + k]
+                sigs.append(sig)
+                if isinstance(sig, int):
+                    ps += sequence[idx:idx+1]
+                    idx += 1
+                else:
+                    sig_length = len(stringToSignature(sig))
+                    ps += sequence[idx:idx+sig_length]
+                    idx += sig_length
+            all_sig.append(sigs)
+            all_ps.append(ps)
+    return all_ps, all_sig
 
 
-
-def extract_ps_and_durations():
-
+def chunk_and_convert_ps_and_durations(sequences, durations, sig_sequences, chunk):
+    all_ps = []
+    all_raw_duration = []
+    all_duration = []
+    all_sig = []
+    for i in range(len(sig_sequences)):
+        idx = 0
+        sequence = sequences[i]
+        duration_sequence = durations[i]
+        sig_sequence = sig_sequences[i]
+        for j in range(math.floor(len(sig_sequence)/chunk)):
+            starting_chunk = j * chunk
+            ps = []
+            raw_duration = []
+            duration = []
+            sigs = []
+            for k in range(chunk):
+                sig = sig_sequence[starting_chunk + k]
+                sigs.append(sig)
+                if isinstance(sig, int):
+                    ps += sequence[idx:idx+1]
+                    duration.append(duration_sequence[idx])
+                    raw_duration.append(duration_sequence[idx])
+                    idx += 1
+                else:
+                    sig_length = len(stringToSignature(sig))
+                    ps += sequence[idx:idx+sig_length]
+                    duration.append(sum(duration_sequence[idx:idx+sig_length]))
+                    raw_duration += duration_sequence[idx:idx+sig_length]
+                    idx += sig_length
+            all_sig.append(sigs)
+            all_ps.append(ps)
+            all_duration.append(duration)
+            all_raw_duration.append(raw_duration)
+    return all_ps, all_raw_duration, all_duration, all_sig
 
 def greedy_activity_conversion(sequence, sorted_signatures):
     if len(sequence) == 0:

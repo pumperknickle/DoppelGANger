@@ -1,5 +1,5 @@
 from gan.output import Output, OutputType, Normalization
-from pcaputilities import convertToFeatures, sequences_sample, extract_dictionaries_from_activities, convert_to_durations, signatureExtractionAll, all_greedy_activity_conversion
+from pcaputilities import convertToFeatures, sequences_sample, chunk_and_convert_ps_and_durations, extract_dictionaries_from_activities, convert_to_durations, signatureExtractionAll, all_greedy_activity_conversion, chunk_and_convert_ps
 import sys
 import glob
 import numpy as np
@@ -70,12 +70,12 @@ D = currentLabel  # number of devices
 
 #  V is vocab size
 normalized_p, V = normalize_packet_sizes(packet_sizes)
-normalized_d, max_duration = normalize_durations(durations)
-max_len = find_max_len(packet_sizes)
 
 all_signatures = signatureExtractionAll(normalized_p, 1, 7, 5, 4)
 results = all_greedy_activity_conversion(normalized_p, all_signatures)
 signatureToTokens, tokensToSignatures = extract_dictionaries_from_activities(results)
+
+V = len(tokensToSignatures)
 
 with open("sigToToken.pkl", mode='wb') as sigFile:
     pickle.dump(signatureToTokens, sigFile)
@@ -87,6 +87,7 @@ print(signatureToTokens)
 print("tokens to signature")
 print(tokensToSignatures)
 
+seq_length = 20
 
 
 sequences = []
@@ -96,13 +97,21 @@ for sequence in results:
         sigs.append(signatureToTokens[token])
     sequences.append(sigs)
 
-for i in range(len(results)):
+r = chunk_and_convert_ps_and_durations(normalized_p, durations, results, seq_length)
+packet_sizes = r[0]
+raw_duration = r[1]
+sig_duration = r[2]
+signatures = r[3]
 
+all_tokens = []
+for signature in signatures:
+    tokens = []
+    for sig in signature:
+        tokens.append(signatureToTokens[sig])
+    all_tokens.append(tokens)
 
-print("tokens")
-print(sequences)
+sig_duration, max_duration = normalize_durations(sig_duration)
 
-seq_length = 20
 minDicts = dict()
 maxDicts = dict()
 
@@ -113,7 +122,6 @@ def divide_chunks(l, n):
     # looping till length l
     for i in range(0, len(l), n):
         yield l[i:i + n]
-
 
 all_chunks = []
 all_altered_chunks = []
@@ -215,7 +223,7 @@ data_feature_output = [
 ]
 
 data_attribute_output = [
-   Output(type_=OutputType.DISCRETE, dim=D, normalization=None, is_gen_flag=False)
+   Output(type_=OutputType.DISCRETE, dim=1, normalization=None, is_gen_flag=False)
 ]
 
 
@@ -224,27 +232,22 @@ data_attribute = []
 data_gen_flag = []
 
 
-for i in range(len(normalized_p)):
-    normalized_packet = normalized_p[i]
-    normalized_duration = normalized_d[i]
-    label = labels[i]
+for i in range(len(all_tokens)):
+    packet_size = all_tokens[i]
+    normalized_duration = sig_duration[i]
+    label = 0
     data_gen = []
     data_feat = []
-    data_attr = [0] * D
+    data_attr = [0] * 1
     data_attr[label] = 1.0
-    for j in range(max_len):
-        if random.randrange(50) > 48:
-            if len(normalized_packet) <= j:
-                data_gen.append(0.0)
-                data_feat.append(np.array((V + 1) * [0.0], dtype="float32"))
-            else:
-                duration = normalized_duration[j]
-                packet = normalized_packet[j]
-                data_gen.append(1.0)
-                d = V * [0.0]
-                d[packet] = 1.0
-                d.append(duration)
-                data_feat.append(np.array(d, dtype="float32"))
+    for j in range(seq_length):
+        duration = normalized_duration[j]
+        packet = packet_size[j]
+        data_gen.append(1.0)
+        d = V * [0.0]
+        d[packet] = 1.0
+        d.append(duration)
+        data_feat.append(np.array(d, dtype="float32"))
     data_gen_flag.append(np.array(data_gen, dtype="float32"))
     data_feature.append(np.array(data_feat))
     data_attribute.append(np.array(data_attr, dtype="float32"))
@@ -253,11 +256,11 @@ print(D)
 print(V)
 
 data_feature = np.array(data_feature)
-print(data_feature)
+print(data_feature.shape)
 data_attribute = np.array(data_attribute)
-print(data_attribute)
+print(data_attribute.shape)
 data_gen_flag = np.array(data_gen_flag)
-print(data_gen_flag)
+print(data_gen_flag.shape)
 print("Max Duration")
 print(max_duration)
 
