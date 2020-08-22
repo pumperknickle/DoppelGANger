@@ -20,7 +20,7 @@ S'iot'
 p9
 sS'vis_num_sample'
 p10
-I5
+I701
 sS'sample_len'
 p11
 I1
@@ -32,13 +32,13 @@ p13
 I5
 sS'num_packing'
 p14
-I1
+I2
 sS'gen_attribute_num_layers'
 p15
 I3
 sS'epoch'
 p16
-I400
+I80
 sS'attr_disc_num_units'
 p17
 I200
@@ -63,7 +63,7 @@ p24
 F1
 sS'batch_size'
 p25
-I100
+I10
 sS'gen_feature_num_units'
 p26
 I100
@@ -102,6 +102,6 @@ p37
 I00
 ssS'_work_dir'
 p38
-S'../results/aux_disc-False,dataset-iot,epoch-400,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,'
+S'../results/aux_disc-False,dataset-iot,epoch-80,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,'
 p39
 sb.
