@@ -8,7 +8,8 @@ def extractSequences(fn):
     with open(fn, newline='\n') as csvf:
         csv_reader = csv.reader(csvf, delimiter=' ')
         for row in csv_reader:
-            seqs.append(row)
+            if len(row) > 0:
+                seqs.append(row)
     return seqs
 
 with open("tokenToSig.pkl", mode='rb') as tokenFile:
@@ -26,7 +27,7 @@ print(tokensToSignatures[5])
 #         real_sequence.append(tokensToSignatures[int(idx)])
 #     real_sequences.append(real_sequence)
 
-fake_seqs = extractSequences("genereted-packets-2.txt")
+fake_seqs = extractSequences("tokens.txt")
 
 fake_sequences = []
 for fake_seq in fake_seqs:

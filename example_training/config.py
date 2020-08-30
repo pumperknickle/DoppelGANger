@@ -14,10 +14,10 @@ config = {
         "num_packing": 2,
         "noise": True,
         "feed_back": False,
-        "g_lr": 0.001,
-        "d_lr": 0.001,
+        "g_lr": 0.0001,
+        "d_lr": 0.0001,
         "d_gp_coe": 10.0,
-        "gen_feature_num_layers": 1,
+        "gen_feature_num_layers": 3,
         "gen_feature_num_units": 100,
         "gen_attribute_num_layers": 3,
         "gen_attribute_num_units": 100,
@@ -35,7 +35,7 @@ config = {
     "test_config": [
         {
             "dataset": ["iot"],
-            "epoch": [80],
+            "epoch": [10000],
             "run": [0],
             "sample_len": [1],
             "extra_checkpoint_freq": [5],

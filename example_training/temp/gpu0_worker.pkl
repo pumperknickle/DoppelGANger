@@ -7,7 +7,7 @@ p3
 (dp4
 S'g_lr'
 p5
-F0.001
+F0.0001
 sS'd_rounds'
 p6
 I1
@@ -38,7 +38,7 @@ p15
 I3
 sS'epoch'
 p16
-I80
+I10000
 sS'attr_disc_num_units'
 p17
 I200
@@ -75,7 +75,7 @@ p28
 F0.001
 sS'gen_feature_num_layers'
 p29
-I1
+I3
 sS'gen_attribute_num_units'
 p30
 I100
@@ -84,7 +84,7 @@ p31
 I200
 sS'd_lr'
 p32
-F0.001
+F0.0001
 sS'disc_num_units'
 p33
 I200
@@ -102,6 +102,6 @@ p37
 I00
 ssS'_work_dir'
 p38
-S'../results/aux_disc-False,dataset-iot,epoch-80,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,'
+S'../results/aux_disc-False,dataset-iot,epoch-10000,epoch_checkpoint_freq-1,extra_checkpoint_freq-5,run-0,sample_len-1,self_norm-False,'
 p39
 sb.
