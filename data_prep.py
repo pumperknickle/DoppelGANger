@@ -1,5 +1,5 @@
 from gan.output import Output, OutputType, Normalization
-from pcaputilities import convertToFeatures, sequences_sample, chunk_and_convert_ps_and_durations, extract_dictionaries_from_activities, convert_to_durations, signatureExtractionAll, all_greedy_activity_conversion, chunk_and_convert_ps
+from pcaputilities import chunk_and_convert_to_training, convertToFeatures, sequences_sample, chunk_and_convert_ps_and_durations, extract_dictionaries_from_activities, convert_to_durations, signatureExtractionAll, all_greedy_activity_conversion, chunk_and_convert_ps
 import sys
 import glob
 import numpy as np
@@ -89,7 +89,6 @@ print(tokensToSignatures)
 
 seq_length = 20
 
-
 sequences = []
 for sequence in results:
     sigs = []
@@ -100,7 +99,6 @@ for sequence in results:
 r = chunk_and_convert_ps_and_durations(normalized_p, durations, results, seq_length)
 packet_sizes = r[0]
 
-print(len(packet_sizes))
 
 for i in range(len(packet_sizes)):
   filename = 'real_packet_sizes.txt'
@@ -112,6 +110,13 @@ for i in range(len(packet_sizes)):
 raw_duration = r[1]
 sig_duration = r[2]
 signatures = r[3]
+
+for i in range(len(raw_duration)):
+  filename = 'real_durations.txt'
+  with open(filename, mode='a') as csvfile:
+    csv_writer = csv.writer(csvfile, delimiter=' ')
+    c_d = raw_duration[i]
+    csv_writer.writerow(c_d)
 
 all_tokens = []
 for signature in signatures:
@@ -155,7 +160,8 @@ for i in range(len(sequences)):
     for chunk in chunks:
       all_chunks.append(chunk)
       if len(chunk) == seq_length:
-        csv_writer.writerow(chunk)
+        new_list = [x for x in chunk]
+        csv_writer.writerow(new_list)
 
 
 def extractSequences(fn):
@@ -227,6 +233,14 @@ def extractSequences(fn):
 #     alteredChunk = list(map(lambda x: x - minDicts[0], final_fakes[i]))
 #     csv_writer.writerow(alteredChunk)
 
+train_X, train_y = chunk_and_convert_to_training(signatures, raw_duration, max_duration, signatureToTokens, 7)
+print(train_X)
+print(train_y)
+
+print(len(train_X))
+print(len(train_y))
+
+
 data_feature_output = [
     Output(type_=OutputType.DISCRETE, dim=V, normalization=None, is_gen_flag=False),
     Output(type_=OutputType.CONTINUOUS, dim=1, normalization=Normalization.ZERO_ONE, is_gen_flag=False)
@@ -275,6 +289,12 @@ print("Max Duration")
 print(max_duration)
 
 np.savez("data/iot/data_train.npz", data_feature=data_feature, data_attribute=data_attribute, data_gen_flag=data_gen_flag)
+with open("train_X.pkl", mode='wb') as sigFile:
+    pickle.dump(train_X, sigFile)
+with open("train_y.pkl", mode='wb') as tokenFile:
+    pickle.dump(train_y, tokenFile)
+with open("max_duration.pkl", mode='wb') as tokenFile:
+    pickle.dump(max_duration, tokenFile)
 with open('data/iot/data_feature_output.pkl', 'wb') as fp:
     pickle.dump(data_feature_output, fp, protocol=2)
 with open('data/iot/data_attribute_output.pkl', 'wb') as fp:

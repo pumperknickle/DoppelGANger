@@ -33,7 +33,8 @@ fake_sequences = []
 for fake_seq in fake_seqs:
     fake_sequence = []
     for idx in fake_seq:
-        fake_sequence.append(tokensToSignatures[int(idx)])
+        print(idx)
+        fake_sequence.append(tokensToSignatures[int(idx) - 1])
     fake_sequences.append(fake_sequence)
 
 # fake_sequences = random.sample(fake_sequences, len(real_sequences))

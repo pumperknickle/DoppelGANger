@@ -156,6 +156,80 @@ def chunk_and_convert_ps(sequences, sig_sequences, chunk):
     return all_ps, all_sig
 
 
+def get_training(all_tokens, tokensToSig, maxSigSize, trailing_tokens=3):
+    predict_X = []
+    for tokens in all_tokens:
+        for i in range(len(tokens)):
+            token = tokens[i]
+            sig = tokensToSig[token]
+            for j in range(len(sig)):
+                previous_tokens = []
+                if j >= trailing_tokens - 1:
+                    previous_tokens = tokens[i-trailing_tokens+1:j+1]
+                else:
+                    previous_tokens = (trailing_tokens - j) * [len(tokensToSig)] + tokens[0:j+1]
+            cats = []
+            for token in previous_tokens:
+                categorical = (len(tokensToSig) + 1) * [0]
+                categorical[token] = 1
+                cats += categorical
+            if isinstance(sig, int):
+                position = maxSigSize * [0]
+                position[0] = 1
+                final_feature = cats + position
+                predict_X.append(final_feature)
+            else:
+                sig_length = len(sig)
+                for k in range(sig_length):
+                    position = maxSigSize * [0]
+                    position[k] = 1
+                    final_feature = cats + position
+                    predict_X.append(final_feature)
+    return predict_X
+
+
+def chunk_and_convert_to_training(signature_sequence, raw_durations, max_duration, signatureToTokens, maxSigSize, trailing_tokens=3):
+    train_X = []
+    train_y = []
+    for i in range(len(signature_sequence)):
+        signatures = signature_sequence[i]
+        durations = raw_durations[i]
+        duration_idx = 0
+        for j in range(len(signatures)):
+            previous_tokens = []
+            if j >= trailing_tokens - 1:
+                prev_sigs = signatures[j - trailing_tokens + 1:j+1]
+                previous_tokens = [signatureToTokens[x] for x in prev_sigs]
+            else:
+                sig_tokens = [signatureToTokens[x] for x in signatures[0:j+1]]
+                previous_tokens = (trailing_tokens - j) * [len(signatureToTokens)] + sig_tokens
+            cats = []
+            for token in previous_tokens:
+                categorical = (len(signatureToTokens) + 1) * [0]
+                categorical[token] = 1
+                cats += categorical
+            sig = signatures[j]
+            if isinstance(sig, int):
+                duration = durations[duration_idx]/max_duration
+                position = maxSigSize * [0]
+                position[0] = 1
+                final_feature = cats + position
+                train_X.append(final_feature)
+                train_y.append(duration)
+                duration_idx += 1
+            else:
+                sig_length = len(stringToSignature(sig))
+                for k in range(sig_length):
+                    position = maxSigSize * [0]
+                    position[k] = 1
+                    duration = durations[duration_idx + k]/max_duration
+                    final_feature = cats + position
+                    train_y.append(duration)
+                    train_X.append(final_feature)
+                duration_idx += sig_length
+    return train_X, train_y
+
+
 def chunk_and_convert_ps_and_durations(sequences, durations, sig_sequences, chunk):
     all_ps = []
     all_raw_duration = []
